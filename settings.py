@@ -1,4 +1,8 @@
-import yaml
+import os
+import json
 
-with open("config.yml", "r") as config_file:
-    config = yaml.full_load(config_file)
+config = {
+    "bot_token": os.environ["BOT_TOKEN"],
+    "mongo_uri": os.environ["MONGO_URI"],
+    "admin_ids": json.loads(os.environ["ADMIN_IDS"])
+}
