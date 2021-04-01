@@ -84,6 +84,9 @@ async def cancel_state(message: types.Message, state: FSMContext):
 async def process_answer(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         logging.info(f"{message.chat.username}:{message.chat.first_name} answered: {message.text}")
+
+        await notify_admin(message, "answered")
+
         db.save_answer(message.chat.id, data["current_question"])
 
         user_answer = message.text.lower()
@@ -93,6 +96,7 @@ async def process_answer(message: types.Message, state: FSMContext):
 
         if min_distance <= min(text_util.distance_map):
             logging.info(f"{message.chat.username}:{message.chat.first_name} has answered correctly.")
+            await notify_admin(message, event="guessed")
             db.save_answer(message.chat.id, data["current_question"], answered=True)
             await PlayerInput.answered.set()
             logging.info(f"{message.chat.username}:{message.chat.first_name}'s result has been saved.")
@@ -270,10 +274,27 @@ async def send_message(user_id: int, text: str, parse_mode=None, disable_notific
     return False
 
 
-async def broadcast(text, parse_mode=None):
+async def notify_admin(user_reply, event=None):
+    text = ""
+    if event == "answered":
+        text = f"<b>{user_reply.chat.username}:{user_reply.chat.first_name} " \
+               f"answered:</b> {user_reply.text}"
+    if event == "guessed":
+        text = f"<b>{user_reply.chat.username}:{user_reply.chat.first_name} +</b>"
+    await broadcast(text, parse_mode=ParseMode.HTML, broadcast_mode="admins")
+
+
+async def broadcast(text, parse_mode=None, broadcast_mode="users"):
+    if broadcast_mode == "users":
+        ids = db.get_all_chat_ids()
+    elif broadcast_mode == "admins":
+        ids = admin_ids
+    else:
+        ids = []
+
     count = 0
     try:
-        for user_id in db.get_all_chat_ids():
+        for user_id in ids:
             if await send_message(user_id, text, parse_mode=parse_mode):
                 count += 1
             await asyncio.sleep(.05)  # 20 messages per second (Limit: 30 messages per second)
