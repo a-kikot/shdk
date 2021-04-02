@@ -48,6 +48,7 @@ async def send_welcome(message: types.Message):
 @dp.message_handler(commands=['get_question'], state="*")
 async def send_question(message: types.Message, state: FSMContext):
     logging.info(f"{message.chat.username}:{message.chat.first_name} requested a question.")
+    await notify_admin(message, event="requested_question")
     current_question = db.get_current_question()
     await PlayerInput.pending_answer.set()
     async with state.proxy() as data:
@@ -154,7 +155,7 @@ async def hey_you(message: types.Message):
         user_id = db.get_user_id(username=recipient_link)
     else:
         user_id = recipient_link
-    logging.info(f"Sending text to { recipient}: { text }")
+    logging.info(f"Sending text to { recipient }: { text }")
     await send_message(user_id, text)
 
 
@@ -279,8 +280,10 @@ async def notify_admin(user_reply, event=None):
     if event == "answered":
         text = f"<b>{user_reply.chat.username}:{user_reply.chat.first_name} " \
                f"answered:</b> {user_reply.text}"
-    if event == "guessed":
+    elif event == "guessed":
         text = f"<b>{user_reply.chat.username}:{user_reply.chat.first_name} +</b>"
+    elif event == "requested_question":
+        text = f"<b>{user_reply.chat.username}:{user_reply.chat.first_name}</b> requested question"
     await broadcast(text, parse_mode=ParseMode.HTML, broadcast_mode="admins")
 
 
