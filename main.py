@@ -42,6 +42,7 @@ class PlayerInput(StatesGroup):
 async def send_welcome(message: types.Message):
     logging.info(f"New user: { message.chat }")
     db.save_user(message.chat)
+    await notify_admin(message, event="joined")
     await message.reply(f"Hey, {message.chat.first_name}.\nPlease, start with /get_question.")
 
 
@@ -284,6 +285,8 @@ async def notify_admin(user_reply, event=None):
         text = f"<b>{user_reply.chat.username}:{user_reply.chat.first_name} +</b>"
     elif event == "requested_question":
         text = f"<b>{user_reply.chat.username}:{user_reply.chat.first_name}</b> requested question"
+    elif event == "joined":
+        text = f"<b>{user_reply.chat.username}:{user_reply.chat.first_name}</b> has joined the game"
     await broadcast(text, parse_mode=ParseMode.HTML, broadcast_mode="admins")
 
 
