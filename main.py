@@ -1,7 +1,6 @@
 import logging
 import asyncio
 import random
-import nltk
 
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.dispatcher import FSMContext
@@ -13,6 +12,7 @@ from aiogram.utils import exceptions
 from settings import config
 
 import text_util
+from maps import ANSWER_CHECKING_MAP, DISTRACTION_MAP
 from db import ShdkDatabase
 
 
@@ -87,36 +87,34 @@ async def process_answer(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         logging.info(f"{message.chat.username}:{message.chat.first_name} answered: {message.text}")
 
-        await notify_admin(message, "answered")
+        await notify_admin(message, event="answered")
 
         db.save_answer(message.chat.id, data["current_question"])
 
         user_answer = message.text.lower()
         right_answers = data["current_question"]["answers"]
 
-        min_distance = min([nltk.edit_distance(right_answer, user_answer) for right_answer in right_answers])
+        answer_status = text_util.check_answer_status(right_answers, user_answer)
 
-        if min_distance <= min(text_util.distance_map):
+        if answer_status == "answered":
             logging.info(f"{message.chat.username}:{message.chat.first_name} has answered correctly.")
             await notify_admin(message, event="guessed")
             db.save_answer(message.chat.id, data["current_question"], answered=True)
             await PlayerInput.answered.set()
             logging.info(f"{message.chat.username}:{message.chat.first_name}'s result has been saved.")
 
-        for threshold, comment_list in text_util.distance_map.items():
-            if min_distance <= threshold:
-                random_comment = random.choice(comment_list)
-                if random_comment["type"] == "text":
-                    await message.reply(random_comment["content"])
-                elif random_comment["type"] == "sticker":
-                    await bot.send_sticker(message.chat.id, random_comment["content"])
-                break
+        comment_list = ANSWER_CHECKING_MAP[answer_status]
+        random_comment = random.choice(comment_list)
+        if random_comment["type"] == "text":
+            await message.reply(random_comment["content"])
+        elif random_comment["type"] == "sticker":
+            await bot.send_sticker(message.chat.id, random_comment["content"])
 
 
 @dp.message_handler(state=PlayerInput.answered)
 async def distract(message: types.Message, state: FSMContext):
     logging.info(f"{message.chat.username}:{message.chat.first_name} answered: {message.text}")
-    random_comment = random.choice(text_util.answered_map)
+    random_comment = random.choice(DISTRACTION_MAP)
 
     if random_comment["type"] == "text":
         await message.reply(random_comment["content"])

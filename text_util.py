@@ -1,112 +1,6 @@
 from prettytable import PrettyTable
-
-distance_map = {
-    1: [
-        {
-            "type": "text",
-            "content": "🌟",
-        },
-        {
-            "type": "text",
-            "content": "⭐",
-        },
-        {
-            "type": "text",
-            "content": "🧡",
-        },
-        {
-            "type": "text",
-            "content": "💛",
-        },
-        {
-            "type": "text",
-            "content": "💚",
-        },
-        {
-            "type": "text",
-            "content": "🤍",
-        },
-        {
-            "type": "text",
-            "content": "💫",
-        }
-    ],
-    2: [
-        {
-            "type": "text",
-            "content": "Meh, quite close",
-        },
-        {
-            "type": "text",
-            "content": "Близко",
-        },
-        {
-            "type": "text",
-            "content": "Почти",
-        },
-        {
-            "type": "sticker",
-            "content": "CAACAgIAAxkBAAIDnWA9CCSbm50miLbkGwP8LMIqsvxGAAIiCAACfAUHG8JzFNgzeZsGHgQ"
-        }
-    ],
-    999: [
-        {
-            "type": "text",
-            "content": "Нет",
-        },
-        {
-            "type": "text",
-            "content": "-",
-        },
-        {
-            "type": "text",
-            "content": "Нет...",
-        },
-        {
-            "type": "text",
-            "content": "❌",
-        },
-        {
-            "type": "text",
-            "content": "Nein",
-        },
-        {
-            "type": "text",
-            "content": "Hi",
-        },
-        {
-            "type": "text",
-            "content": "Nej",
-        }
-    ]
-}
-
-answered_map = [
-    {
-        "type": "text",
-        "content": "Шо ты дальше жмешь? Ответ засчитан"
-    },
-    {
-        "type": "text",
-        "content": "Иди отдохни"
-    },
-    {
-        "type": "text",
-        "content": "Гаси компухтер, интернет-зависимый"
-    },
-    {
-        "type": "sticker",
-        "content": "CAACAgIAAxkBAAID4mA9ZS3_nTPmKUfaJjZigv-I3wKzAAKIBQACIwUNAAGAByyt3cydxh4E"
-    },
-    {
-        "type": "sticker",
-        "content": "CAACAgIAAxkBAAID5GA9ZZsYKntEE7o_fatrpX7LlgUJAAKoAAOm02IXl-rkB9kRMGEeBA"
-    },
-    {
-        "type": "sticker",
-        "content": "CAACAgIAAxkBAAID5mA9Zb6aH6we8Yc7lBcTEMtGRCXRAAJ3AANlpe4TwHhRvioAAS02HgQ"
-    }
-]
+import nltk
+from maps import DISTANCES
 
 
 def process_question(question_text):
@@ -143,6 +37,23 @@ def process_question(question_text):
     structured_question["status"] = "future"
 
     return structured_question
+
+
+def check_answer_status(right_answers: list, user_answer: str) -> (bool, str):
+    statuses = []
+
+    for right_answer in right_answers:
+        answer_length = "SHORT_ANSWER" if len(right_answer) <= 2 else "LONG_ANSWER"
+        actual_distance = nltk.edit_distance(right_answer, user_answer)
+        for threshold, answer_status in DISTANCES[answer_length].items():
+            if actual_distance <= threshold:
+                statuses.append(answer_status)
+
+    if "answered" in statuses:
+        return "answered"
+    elif "close_to_answer" in statuses:
+        return "close_to_answer"
+    return "fail"
 
 
 def format_user_data(users_data: list) -> list:
