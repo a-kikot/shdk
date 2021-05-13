@@ -177,7 +177,7 @@ async def get_answered_users(message: types.Message):
         f"    <b>Комментарий:</b>",
         f"{current_question.get('comment', '—')}",
         f"    <b>Вырвавшие очко:</b>",
-        f"{answered_ratio * 100}%"
+        f"{round(answered_ratio * 100, 1)}%"
     ]
 
     question_structure_lines = "\n".join(question_structure_lines)
@@ -219,7 +219,7 @@ async def advance_to_the_next_question(message: types.Message):
         f"    <b>Комментарий:</b>",
         f"{current_question.get('comment', '—')}",
         f"    <b>Вырвавшие очко:</b>",
-        f"{answered_ratio * 100}%"
+        f"{round(answered_ratio * 100, 1)}%"
     ]
 
     question_structure_lines = "\n".join(question_structure_lines)
