@@ -165,7 +165,7 @@ async def hey_yall(message: types.Message):
     await broadcast(text)
 
 
-@dp.message_handler(state="*", commands=["show_answered_users"], chat_id=admin_ids)
+@dp.message_handler(state="*", commands=["show_answer"], chat_id=admin_ids)
 async def get_answered_users(message: types.Message):
     logging.info(f"Getting answered users")
     answered_ratio = db.get_answered_ratio()
@@ -176,7 +176,7 @@ async def get_answered_users(message: types.Message):
         f"{', '.join(current_question['answers'])}",
         f"    <b>Комментарий:</b>",
         f"{current_question.get('comment', '—')}",
-        f"    <b>Ответили:</b>",
+        f"    <b>Вырвавшие очко:</b>",
         f"{answered_ratio * 100}%"
     ]
 
@@ -210,23 +210,25 @@ async def parse_question(message: types.Message):
 @dp.message_handler(state="*", commands=["next_question"], chat_id=admin_ids)
 async def advance_to_the_next_question(message: types.Message):
     logging.info(f"Switching to the next question")
+    answered_ratio = db.get_answered_ratio()
     current_question = db.get_current_question()
-    answered_users = db.get_answered_users()
-    if answered_users:
-        answered_user_lines = [text_util.format_user_data(answered_users)]
-    else:
-        answered_user_lines = ["🏳️"]
+
     question_structure_lines = [
         f"    <b>Ответ:</b>",
         f"{', '.join(current_question['answers'])}",
         f"    <b>Комментарий:</b>",
         f"{current_question.get('comment', '—')}",
-        f"    <b>Ответили:</b>"
+        f"    <b>Вырвавшие очко:</b>",
+        f"{answered_ratio * 100}%"
     ]
+
+    question_structure_lines = "\n".join(question_structure_lines)
+
     await broadcast(
-        "\n".join(question_structure_lines + answered_user_lines),
+        question_structure_lines,
         parse_mode=ParseMode.HTML
     )
+
     db.advance_to_the_next_question()
     await broadcast("/get_question")
     await message.reply("Success.")
