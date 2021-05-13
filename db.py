@@ -74,28 +74,20 @@ class ShdkDatabase:
             upsert=True
         )
 
-    def get_answered_users(self, question_id=None, current_question=True):
+    def get_answered_ratio(self, question_id=None, current_question=True):
         if current_question:
             question_id = self.questions_collection.find_one({"status": "current"})["_id"]
-        user_id_list = [
-            answer["user_id"] for answer in self.answers_history_collection.find(
+
+        if_answered_list = [
+            answer["answered"] for answer in self.answers_history_collection.find(
                 {
-                    "question_id": question_id,
-                    "answered": True
+                    "question_id": question_id
                 }
             )
         ]
-        users_data = [
-            user for user in self.users_collection.find({"id": {"$in": user_id_list}})
-        ]
-        users_data = [
-            {
-                "username": user["username"],
-                "first_name": user["first_name"]
-            } for user in users_data
-        ]
 
-        return users_data
+        ratio = if_answered_list.count(True) / len(if_answered_list)
+        return ratio
 
     def log_all_users(self) -> None:
         for user in self.users_collection.find():

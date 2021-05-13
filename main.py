@@ -168,27 +168,28 @@ async def hey_yall(message: types.Message):
 @dp.message_handler(state="*", commands=["show_answered_users"], chat_id=admin_ids)
 async def get_answered_users(message: types.Message):
     logging.info(f"Getting answered users")
-    answered_users = db.get_answered_users()
+    answered_ratio = db.get_answered_ratio()
     current_question = db.get_current_question()
-    if answered_users:
-        answered_user_lines = [text_util.format_user_data(answered_users)]
-    else:
-        answered_user_lines = ["🏳️"]
+
     question_structure_lines = [
         f"    <b>Ответ:</b>",
         f"{', '.join(current_question['answers'])}",
         f"    <b>Комментарий:</b>",
         f"{current_question.get('comment', '—')}",
-        f"    <b>Ответили:</b>"
+        f"    <b>Ответили:</b>",
+        f"{answered_ratio * 100}%"
     ]
+
+    question_structure_lines = "\n".join(question_structure_lines)
+
     await send_message(
         message.chat.id,
-        "\n".join(question_structure_lines + answered_user_lines),
+        question_structure_lines,
         parse_mode=ParseMode.HTML
     )
 
 
-@dp.message_handler(commands=["start_saving_questions"], chat_id=admin_ids)
+@dp.message_handler(state="*", commands=["start_saving_questions"], chat_id=admin_ids)
 async def start_saving_questions(message: types.Message):
     await AdminInput.questions_saving.set()
     await message.reply("Saving mode is on.")

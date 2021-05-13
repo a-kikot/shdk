@@ -1,4 +1,3 @@
-from prettytable import PrettyTable
 import nltk
 from maps import DISTANCES
 
@@ -55,19 +54,3 @@ def check_answer_status(right_answers: list, user_answer: str) -> (bool, str):
         return "close_to_answer"
     return "fail"
 
-
-def format_user_data(users_data: list) -> list:
-    lines = []
-    for user in users_data:
-        if user["username"]:
-            user["username"] = "@" + user["username"]
-        else:
-            user["username"] = ""
-        username_part = user["username"].rjust(25 - len(user["username"]), ".")
-        first_name_part = user["first_name"].ljust(25 - len(user["first_name"]))
-        lines.append(first_name_part + username_part)
-
-    lines = PrettyTable(['First name', 'Username'])
-    for user in users_data:
-        lines.add_row([user["first_name"], user["username"]])
-    return "<pre>" + lines.get_string() + "</pre>"
