@@ -33,6 +33,9 @@ class ShdkDatabase:
         self.users_collection.update_one({"id": user_info.id}, {"$set": user_dict}, upsert=True)
         logging.info("New user has been saved")
 
+    def update_user_status(self, user_id, active=False):
+        self.users_collection.update_one({"id": user_id}, {"$set": {"active": active}}, upsert=True)
+
     def get_user_id(self, username):
         user = self.users_collection.find_one({"username": username})
         if user:

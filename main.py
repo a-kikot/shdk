@@ -188,7 +188,7 @@ async def get_answered_users(message: types.Message):
         parse_mode=ParseMode.HTML
     )
 
-
+    
 @dp.message_handler(state="*", commands=["start_saving_questions"], chat_id=admin_ids)
 async def start_saving_questions(message: types.Message):
     await AdminInput.questions_saving.set()
@@ -257,10 +257,12 @@ async def drop_users(message: types.Message):
 
 
 async def send_message(user_id: int, text: str, parse_mode=None, disable_notification: bool = False) -> bool:
+
     try:
         await bot.send_message(user_id, text, disable_notification=disable_notification, parse_mode=parse_mode)
     except exceptions.BotBlocked:
         logging.error(f"Target [ID:{user_id}]: blocked by user")
+        db.update_user_status(user_id)
     except exceptions.ChatNotFound:
         logging.error(f"Target [ID:{user_id}]: invalid user ID")
     except exceptions.RetryAfter as e:
@@ -269,12 +271,12 @@ async def send_message(user_id: int, text: str, parse_mode=None, disable_notific
         return await send_message(user_id, text)  # Recursive call
     except exceptions.UserDeactivated:
         logging.error(f"Target [ID:{user_id}]: user is deactivated")
+        db.update_user_status(user_id)
     except exceptions.TelegramAPIError:
         logging.exception(f"Target [ID:{user_id}]: failed")
     else:
         logging.info(f"Target [ID:{user_id}]: success")
-        return True
-    return False
+
 
 
 async def notify_admin(user_reply, event=None):
