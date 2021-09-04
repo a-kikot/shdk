@@ -42,7 +42,7 @@ def check_answer_status(right_answers: list, user_answer: str) -> (bool, str):
     statuses = []
 
     for right_answer in right_answers:
-        answer_length = "SHORT_ANSWER" if len(right_answer) <= 2 else "LONG_ANSWER"
+        answer_length = "SHORT_ANSWER" if len(right_answer) <= 3 else "LONG_ANSWER"
         actual_distance = nltk.edit_distance(right_answer, user_answer)
         for threshold, answer_status in DISTANCES[answer_length].items():
             if actual_distance <= threshold:
