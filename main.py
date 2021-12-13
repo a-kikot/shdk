@@ -172,6 +172,8 @@ async def get_answered_users(message: types.Message):
     current_question = db.get_current_question()
 
     question_structure_lines = [
+        f"    <b>Вопрос:</b>",
+        f"{', '.join(current_question['question'])}",
         f"    <b>Ответ:</b>",
         f"{', '.join(current_question['answers'])}",
         f"    <b>Комментарий:</b>",
@@ -276,7 +278,6 @@ async def send_message(user_id: int, text: str, parse_mode=None, disable_notific
         logging.exception(f"Target [ID:{user_id}]: failed")
     else:
         logging.info(f"Target [ID:{user_id}]: success")
-
 
 
 async def notify_admin(user_reply, event=None):
