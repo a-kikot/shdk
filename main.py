@@ -216,6 +216,8 @@ async def advance_to_the_next_question(message: types.Message):
     current_question = db.get_current_question()
 
     question_structure_lines = [
+        f"    <b>Вопрос:</b>",
+        f"{current_question['question']}",
         f"    <b>Ответ:</b>",
         f"{', '.join(current_question['answers'])}",
         f"    <b>Комментарий:</b>",
