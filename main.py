@@ -173,7 +173,7 @@ async def get_answered_users(message: types.Message):
 
     question_structure_lines = [
         f"    <b>Вопрос:</b>",
-        f"{', '.join(current_question['question'])}",
+        f"{current_question['question']}",
         f"    <b>Ответ:</b>",
         f"{', '.join(current_question['answers'])}",
         f"    <b>Комментарий:</b>",
